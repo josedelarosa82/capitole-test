@@ -1,0 +1,7 @@
+filePath: 'C:\Proyectos\Algorithms\CapitoleTest\testFiles\output\'
+server:
+    port : 4300
+app:
+    capitole:
+        values:
+            iva: 18

@@ -13,12 +13,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ShoppingCarServiceImpl implements ShoppingCarService{
+
+    @Value("${filePath}")
+    private String basePath;
 
     @Value("${app.capitole.values.iva}")
     private int IVA;
@@ -46,7 +51,20 @@ public class ShoppingCarServiceImpl implements ShoppingCarService{
         }
     }
 
+    //Función que permite copiar un archivo en disco
+    private void saveFile(MultipartFile file) throws Exception {
+        Path path = Path.of(basePath+ "output\\"+ file.getName() + ".csv");
+        try {
+            if (file.getSize() == 0) {
+                throw new RuntimeException("File is empty");
+            }
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new RuntimeException("Error uploading file "+ e.getMessage());
+        }
+    }
 
+    //Función que permite cargar un archivo y procesarlo
     public Car uploadFile(MultipartFile file) {
         List<Item> items = new ArrayList<>();
         String line;
@@ -66,6 +84,7 @@ public class ShoppingCarServiceImpl implements ShoppingCarService{
                     throw new RuntimeException("Error formating Item ("+line+") "+ e.getMessage());
                 }
             }
+            saveFile(file);
             return calculateShoppingCart(items);
         } catch (Exception e) {
             throw new RuntimeException("Error uploading file "+ e.getMessage());

@@ -2,7 +2,6 @@ package com.capitole.ecommerce.controller;
 
 import com.capitole.ecommerce.model.Error;
 import com.capitole.ecommerce.model.Item;
-import com.capitole.ecommerce.service.FileProcessingService;
 import com.capitole.ecommerce.service.ShoppingCarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -23,8 +22,7 @@ public class ShoppingCarController {
 
     @Autowired
     private ShoppingCarService shoppingCarService;
-    @Autowired
-    private FileProcessingService fileProcessingService;
+
 
     @PostMapping("/calculate-total")
     public ResponseEntity<?> calculateShoppingCar(@RequestBody List<Item> items) {

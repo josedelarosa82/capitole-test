@@ -1,6 +1,8 @@
 package com.capitole.ecommerce;
 
-import com.capitole.ecommerce.service.FileProcessingService;
+import com.capitole.ecommerce.model.Car;
+import com.capitole.ecommerce.model.Item;
+import com.capitole.ecommerce.service.ShoppingCarService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,14 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.multipart.MultipartFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.Objects;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -25,32 +25,30 @@ public class ShoppingCarServiceTests {
     private String filePath;
 
     @Autowired
-    private FileProcessingService service;
+    private ShoppingCarService service;
+
+    private Car car = Car.builder().taxRate(18).totalTaxes(2520).totalNet(11480).totalGross(14000).totalItems(4).build();
 
     @Test
-    public void fileListMethodShouldReturnTheExistingFileList(){
+    public void uploadFile() throws Exception  {
 
-        File file = new File(filePath);
+        File f1 = new File(filePath + "file1.txt");
+        MockMultipartFile file = new MockMultipartFile("file1.txt", Files.readAllBytes(f1.toPath()));
 
-        List<String> existing = Arrays.asList(Objects.requireNonNull(file.list()));
-
-        List<String> fileList =  service.fileList();
-
-        assertEquals(fileList, existing);
+        assertEquals(service.uploadFile(file).getTotalNet(), car.getTotalNet());
     }
 
     @Test
-    public void fileUploadMethodShouldReturnCreatedOnSuccess() throws Exception {
+    public void calculateShoppingCartOnSuccess() throws Exception {
 
-        MultipartFile mf = new MockMultipartFile("testUpload.txt", "This is test".getBytes());
+        List<Item> items = List.of(
+                Item.builder().id("1").name("Cocacola").value(2000).build(),
+                Item.builder().id("2").name("Pepsi").value(3000).build(),
+                Item.builder().id("3").name("Colombiana").value(4000).build(),
+                Item.builder().id("3").name("Postobon").value(5000).build());
 
-        String response =  service.uploadFile(mf);
+        assertEquals(service.calculateShoppingCart(items).getTotalNet(), car.getTotalNet());
 
-        assertEquals("CREATED", response);
-
-        File file = new File(filePath+"testUpload.txt");
-
-        file.delete();
     }
 
 

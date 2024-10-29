@@ -5,13 +5,14 @@ package com.capitole.ecommerce.service;
 
 import com.capitole.ecommerce.model.Car;
 import com.capitole.ecommerce.model.Item;
+import com.capitole.ecommerce.service.taxes.IvaTaxes;
+import com.capitole.ecommerce.service.taxes.TaxesStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,8 +26,10 @@ public class ShoppingCarServiceImpl implements ShoppingCarService{
     @Value("${filePath}")
     private String basePath;
 
-    @Value("${app.capitole.values.iva}")
-    private int IVA;
+    @Value("${app.capitole.taxes}")
+    private String taxesType;
+
+    private static TaxesStrategy strategy;
 
 
     //Funcion que calcula el total bruto de los items
@@ -37,18 +40,26 @@ public class ShoppingCarServiceImpl implements ShoppingCarService{
 
     //Funcion que calcula el carrito de compras
     public Car calculateShoppingCart(List<Item> items) {
+        int tax = getTaxes(taxesType);
         try{
             double totalGross = calculateTotalGross(items);
             return Car.builder().
                                 totalGross(totalGross).
-                                totalNet( totalGross - ((totalGross * IVA) / 100) ).
-                                totalTaxes((totalGross * IVA) / 100).
+                                totalNet( totalGross - ((totalGross * tax) / 100) ).
+                                totalTaxes((totalGross * tax) / 100).
                                 totalItems(items.size()).
-                                taxRate(IVA).
+                                taxRate(tax).
                                 build();
         } catch (Exception e) {
             throw new RuntimeException("Error calculating total gross "+ e.getMessage());
         }
+    }
+
+    //Función que obtiene el % de impuesto
+    public int getTaxes(String type){
+        if(type.equals("iva"))
+            strategy = new IvaTaxes();
+        return strategy.getCurrentTax().getValue();
     }
 
     //Función que permite copiar un archivo en disco

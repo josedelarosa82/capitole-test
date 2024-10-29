@@ -3,5 +3,4 @@ server:
     port : 4300
 app:
     capitole:
-        values:
-            iva: 18
+        taxes: iva
